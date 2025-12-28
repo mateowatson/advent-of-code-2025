@@ -1,38 +1,20 @@
 <?php
 
-// not working at all
-
-$input_path = __DIR__ . '/test-input.txt';
+$input_path = __DIR__ . '/real-input.txt';
 
 $input = file_get_contents($input_path);
 
 $banks = explode("\n", $input);
 
-$joltage_sets = '';
-
 $joltage_sum = 0;
 
 foreach($banks as $bank) {
-    $bs = array_reverse(str_split($bank));
-    $h = null;
-    $sh = null;
-    $hi = null;
-    $shi = null;
-    foreach($bs as $i => $b) {
-        if($b > $h) {
-            if($sh) {
-                $sh = $h;
-            }
-            $h = $b;
-            $hi = $i;
-        } else if($b > $sh) {
-            $sh = $b;
-            $shi = $i;
-        }
-    }
-    $joltage_sets .= "$h $sh<br>";
-    $joltage_sum += (int)($h.$sh);
+    $batteries = str_split($bank);
+    $all_but_last = array_slice($batteries, 0, count($batteries) - 1);
+    $first = max($all_but_last);
+    $rest = array_slice($batteries, array_search($first, $batteries) + 1);
+    $second = max($rest);
+    $joltage_sum += (int)($first.$second);
 }
 
-echo $joltage_sets;
 echo $joltage_sum;
