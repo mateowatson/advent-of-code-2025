@@ -8,24 +8,62 @@ $parts = explode("\n\n", $input);
 
 $ranges = explode("\n", $parts[0]);
 
-$ingredients = explode("\n", $parts[1]);
+$available_sum = 0;
 
-$available_range_ids = [];
+$new_range = '';
+$delete_ranges = [];
 
-foreach($ingredients as $i) {
-    foreach($ranges as $r) {
+$stop = false;
+
+while(!$stop) {
+    $delete_ranges = [];
+    $new_range = '';
+    
+    foreach($ranges as $idx => $r) {
         $range = explode("-", $r);
         $start = (int)$range[0];
         $end = (int)$range[1];
-        if((int)$i >= $start && (int)$i <= $end) {
-            $available_range_ids = array_merge(
-                $available_range_ids,
-                range($start, $end)
-            );
+        $found = false;
+
+        foreach($ranges as $idx2 => $r2) {
+            if($idx2 === $idx) continue;
+            $range2 = explode("-", $r2);
+            $start2 = (int)$range2[0];
+            $end2 = (int)$range2[1];
+
+            if($start2 >= $start && $start2 <= $end) {
+                $new_range = min($start, $start2) . "-" . max($end, $end2);
+                $delete_ranges = [$r, $r2];
+                $found = true;
+                break;
+            } else if($end2 <= $end && $end2 >= $start) {
+                $new_range = min($start, $start2) . "-" . max($end, $end2);
+                $delete_ranges = [$r, $r2];
+                $found = true;
+                break;
+            }
         }
+
+        if($found)
+            break;
+    }
+
+    if(!empty($new_range) || !empty($delete_ranges)) {
+        if(!empty($delete_ranges))
+            $ranges = array_filter($ranges, fn($r) => !in_array($r, $delete_ranges));
+        if(!empty($new_range))
+            $ranges[] = $new_range;
+    } else {
+        $stop = true;
     }
 }
 
-echo count(array_unique($available_range_ids));
+// add up available ids
+foreach($ranges as $r) {
+    $range = explode("-", $r);
+    $start = (int)$range[0];
+    $end = (int)$range[1];
+    $available_sum += ($end - $start) + 1;
+}
 
-// Fatal error: Uncaught ValueError: The supplied range exceeds the maximum array size: start=183599931013684 end=190431666505844 step=1 in /var/www/html/05.2/solution.php:24 Stack trace: #0 /var/www/html/05.2/solution.php(24): range() #1 {main} thrown in /var/www/html/05.2/solution.php on line 24
+echo $available_sum;
